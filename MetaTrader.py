@@ -12,9 +12,6 @@ if not mt5.initialize():
     print("initialize() failed, error code =",mt5.last_error())
     quit()
 
-
-# change form scaler fit to scaler transform
-
 #Load the model
 model = load_model("C:/Users/muyu2/OneDrive/Documents/DeepLearning/models/model_name4.h5")
 
