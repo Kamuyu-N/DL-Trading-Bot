@@ -11,10 +11,9 @@ from tensorflow.keras.callbacks import EarlyStopping
 gpus = tf.config.list_physical_devices('GPU')
 tf.config.set_logical_device_configuration(gpus[0],[tf.config.LogicalDeviceConfiguration(memory_limit=8044)] ) # Limit to 7.9 gigs approx.
 
+#Data Loading
 tp_sl = 'tp_4_sl_9' #Initialize the take profit and stop loss levels used for the feature creation
 
-
-#Data Loading and class weights calc
 x1_t = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/test/techs.npy', allow_pickle=True)
 x2_t  = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/test/ohlc.npy', allow_pickle=True)
 y_t = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/test/label.npy', allow_pickle=True)
@@ -33,7 +32,7 @@ x = Dropout(0.2, name='dropout1')(x2)
 merged = Concatenate(name='Merger')([x1,x2])
 
 # Fully connected layers
-x = Dense(128, activation='relu', name='dense_1')(x1)
+x = Dense(128, activation='relu', name='dense_1')(merged)
 x = Dense(64, activation='relu', name='dense_2')(x)
 x = Dense(32, activation='relu',name= 'dense_3')(x) # try different activations
 
@@ -58,13 +57,12 @@ x2_train = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/trai
 y_train = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/train/label.npy', allow_pickle=True)
 
 
-# #correct shape of X2
-# ohlc = np.concatenate(x2_train).flatten()
-# x2_train  = ohlc.reshape((len(x2_train), 21, 7))
-#
-# # x1_train,x2_train,y_train = DeepLearning.shuffle(x1_train,x2_train,y_train)
+#correct shape of X2
+ohlc = np.concatenate(x2_train).flatten()
+x2_train  = ohlc.reshape((len(x2_train), 21, 7))
 
-#Shifting class weights
+
+#Modfication of class weights ( to combat the unbalanced classes )
 y_train_int = np.argmax(y_train, axis=1)
 classes = np.unique(y_train_int)
 weights = compute_class_weight(class_weight='balanced', classes=classes, y=y_train_int)
@@ -77,7 +75,7 @@ weights_dict = {
 print(weights_dict)
 
 #class weights to be returned later
-model.fit(x1_train,y_train, batch_size=64, epochs=100 ,verbose=2 ,callbacks=[early_stopping],class_weight=weights_dict,validation_split=0.12)
+model.fit(x1_train,y_train, batch_size=64, epochs=100 ,verbose=2 ,callbacks=[early_stopping],class_weight=weights_dict,validation_split=0.10)
 
 #Data Loading and class weights calc
 x1_t = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/test/techs.npy', allow_pickle=True)
@@ -85,12 +83,12 @@ x2_t  = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/test/oh
 y_t = np.load(f'C:/Users/muyu2/OneDrive/Documents/DeepLearning/{tp_sl}/test/label.npy', allow_pickle=True)
 
 
-# Split to test and validation set( 60/40 split )
-test_len = round(len(x1_t) * 0.6)
+#Model evaluation
+test_len = round(len(x1_t) * 0.6)# Remaining data is to be used for validation purposes
 x1_test,x2_test , y_test = x1_t[:test_len],x2_t[:test_len], y_t[:test_len]
 
 x1_test, x2_test = DeepLearning.format_test(x1_test, x2_test,y=y_test, timesteps=21,features_x1=7, features_x2=4)
-model.evaluate(x1_test, y_test , verbose=2)
+model.evaluate([x1_test, x2_test], y_test , verbose=2)
 
 #saving the model
 model.save("C:/Users/muyu2/OneDrive/Documents/DeepLearning/models/model_name4.h5")
