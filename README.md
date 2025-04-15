@@ -32,33 +32,25 @@ This project is an intelligent Forex trading bot that uses deep learning to make
 - **Pywinauto** – Automating Windows UI interactions  
 - **Pytesseract** – OCR to extract price data from screenshots  
 
-### 🧰 System Requirements
-- Python 3.9+
-- Windows OS (required for MetaTrader + screen automation)
-- Tesseract-OCR (for screen-based price reading)
-
 ---
 
 ## 🔁 Workflow Overview
 
 1. **Data Preparation**  
-   Generate technical indicators using TA-Lib and prepare labeled time series data.
+   - `FeatureCreation.py` handles feature engineering with technical indicators.
+   - Data file `eurusd-15m.csv` contains historical price data used for model training.
 
 2. **Model Training**  
-   Train a multi-class classification LSTM model:
-   ```bash
-   python train_model.py
-   ```
+   - `model.py` builds and trains the LSTM model.
+   - Outputs a trained file like `trained_model.h5`.
 
 3. **Broker Type Selection**
-   - ✅ If your broker supports MetaTrader 5: use `mt5_trade.py`
-   - ❌ If not, use screen automation with `ui_automation_trade.py`
+   - ✅ If your broker supports MetaTrader 5: use `MetaTrader.py`
+   - ❌ If not, use screen automation via `OrderAutomation.py`
 
-4. **Live Execution**
-   - Load trained LSTM model
-   - Fetch market data
-   - Predict signal (BUY/SELL/HOLD)
-   - Execute order and set SL/TP
+4. **Trade Execution**
+   - `AssistanceFunctions.py` contains helper logic for modifying orders and setting SL/TP.
+   - Choose execution mode and run real-time predictions and trades.
 
 ---
 
@@ -81,19 +73,17 @@ This project is an intelligent Forex trading bot that uses deep learning to make
 
 ## 🧠 Training the LSTM Model
 
-Make sure `historical_data.csv` is in the appropriate directory.
+Make sure `eurusd-15m.csv` is present.
 
 ```bash
-python train_model.py
+python model.py
 ```
 
 The model includes:
-- `LSTM` layers for temporal pattern learning  
+- `LSTM` layers for sequence learning  
 - `Dropout` layers to prevent overfitting  
-- `Dense` output layer for multi-class classification  
-- Compiled with `categorical_crossentropy` loss and `Adam` optimizer
-
-Model is saved as `trained_model.h5`.
+- `Dense` output for class prediction (Buy, Sell, Hold)  
+- Compiled with `categorical_crossentropy` and `Adam` optimizer
 
 ---
 
@@ -104,7 +94,7 @@ Model is saved as `trained_model.h5`.
 Use this if your broker allows direct MT5 access:
 
 ```bash
-python mt5_trade.py
+python MetaTrader.py
 ```
 
 ### ❌ Screen Automation Method
@@ -112,20 +102,20 @@ python mt5_trade.py
 Use this for brokers that don’t support automation:
 
 ```bash
-python ui_automation_trade.py
+python OrderAutomation.py
 ```
 
-You can customize trade direction, pip size, and region values in the script.
+You can customize trade direction, pip size, and screen region inside the script.
 
 ---
 
 ## 📸 Screenshot Automation Notes
 
-- The bot captures a region of the screen and uses OCR to read the entry price.
-- PyAutoGUI and Pywinauto simulate human actions to:
+- `OrderAutomation.py` captures a region of the screen and uses OCR to extract prices.
+- `PyAutoGUI` and `Pywinauto` simulate user input to:
   - Place a trade
-  - Open the modify trade window
-  - Set Stop Loss and Take Profit prices relative to prediction and current price
+  - Open trade modification
+  - Set Stop Loss and Take Profit
 
 ---
 
