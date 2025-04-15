@@ -58,8 +58,8 @@ This project is an intelligent Forex trading bot that uses deep learning to make
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/forex-trading-bot.git
-   cd forex-trading-bot
+   git clone https://github.com/Kamuyu-N/DL-Trading-Bot.git
+   cd DL-Trading-Bot
    ```
 
 2. Install dependencies:
